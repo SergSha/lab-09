@@ -1,0 +1,86 @@
+---
+# tasks file for php
+
+- name: Debian OS
+  block:
+
+  # apt install php-fpm -y
+  - name: PHP-FPM | Install PHP-FPM Debian
+    ansible.builtin.apt:
+      name:
+        - "php{{ php_version }}-fpm"
+        - "php{{ php_version }}-mysql"
+        - "php{{ php_version }}-bcmath"
+        - "php{{ php_version }}-ctype"
+        - "php{{ php_version }}-json"
+        - "php{{ php_version }}-mbstring"
+        - "php{{ php_version }}-pdo"
+        - "php{{ php_version }}-tokenizer"
+        - "php{{ php_version }}-xml"
+        - "php{{ php_version }}-curl"
+      state: latest
+      update_cache: yes
+
+  when: ansible_os_family == "Debian"
+
+- name: Redhat OS
+  block:
+
+  - name: PHP-FPM | Install EPEL repo
+    ansible.builtin.dnf:
+      name:
+        - epel-release
+      state: latest
+
+# #- name: PHP-FPM | Instal EPEL repo
+# #  command: rpm -Uvh https://dl.fedoraproject.org/pub/epel/epel-release-latest-82.noarch.rpm
+# #  ignore_errors: yes
+
+# - name: PHP-FPM | Install remi repo
+#   ansible.builtin.dnf:
+#     name:
+#       - http://rpms.remirepo.net/enterprise/remi-release-82.rpm
+#     state: latest
+
+# #- name: PHP-FPM | Install Remi repo
+# #  command: rpm -Uvh http://rpms.remirepo.net/enterprise/remi-release-82.rpm
+# #  ignore_errors: yes
+
+#  - name: PHP-FPM | Enable remi-php82 repo
+#    ansible.builtin.replace:
+#      path: /etc/yum.repos.d/remi-php82.repo
+#      regexp: '^enabled=0'
+#      replace: enabled=1
+
+  - name: PHP-FPM | Install PHP-FPM Redhat
+    ansible.builtin.dnf:
+      name:
+        - "php-fpm"
+        - "php-mysqlnd"
+        - "php-bcmath"
+        - "php-ctype"
+        - "php-json"
+        - "php-mbstring"
+        - "php-pdo"
+        - "php-tokenizer"
+        - "php-xml"
+        - "php-curl"
+      state: present
+  
+  when: ansible_os_family == "RedHat"
+
+# systemctl restart php-fpm.service
+- name: PHP-FPM | Start php-fpm service Debian
+  ansible.builtin.systemd:
+    name: "php{{ php_version }}-fpm"
+    state: restarted
+    enabled: yes
+  when: ansible_os_family == "Debian"
+
+# systemctl restart php-fpm.service
+- name: PHP-FPM | Start php-fpm service Redhat
+  ansible.builtin.systemd:
+    name: php-fpm
+    state: restarted
+    enabled: yes
+  when: ansible_os_family == "RedHat"

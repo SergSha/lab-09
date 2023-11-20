@@ -1,0 +1,20 @@
+service {
+  id = "{{ srv_name }}"
+  name = "{{ srv_name }}"
+  tags = [ "{{ srv_name }}" ]
+  port = 80
+{% if wan_ip is defined %}
+  tagged_addresses {
+    wan = {
+      address = "{{ wan_ip }}"
+      port = 80
+    }
+  }
+{% endif %}
+  check = {
+    name = "http"
+    interval = "5s"
+    timeout = "2s"
+    http = "http://localhost:80/status"
+  }
+}

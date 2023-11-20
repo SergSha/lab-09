@@ -1,0 +1,90 @@
+- name: Consul Template | Install Packages
+  ansible.builtin.apt: 
+    name: "{{ consul_packages }}"
+    state: latest
+    update_cache: true
+
+- name: Consul Template | Add user
+  ansible.builtin.user:
+    name: "consul"
+    shell: "/bin/false"
+    system: false
+    create_home: false
+
+- name: Consul Template | Copy binaries
+  ansible.builtin.copy:
+    src: consul-template_0.35.0_linux_amd64.zip
+    dest: /tmp/consul-template_0.35.0_linux_amd64.zip
+
+- name: Consul Template | Unarchive consul binaries
+  ansible.builtin.unarchive:
+    src: /tmp/consul-template_0.35.0_linux_amd64.zip
+    dest: /usr/local/sbin
+    remote_src: true
+
+- name: Consul Template | Make directories
+  ansible.builtin.file:
+    path: "{{ item }}"
+    state: directory
+    owner: consul
+    group: consul
+  loop:
+  - /etc/consul-template.d
+  - /etc/consul-template.d/templates
+  - /etc/consul-template.d/rendered
+
+- name: Consul Template | Configure consul templates
+  ansible.builtin.template:
+    src: consul/consul-template-config.hcl
+    dest: /etc/consul-template.d/config.hcl
+    owner: consul
+    group: consul
+  notify: reload consul-template
+
+#- name: Consul Template | Remove config
+#  ansible.builtin.file:
+#    path: /etc/nginx/conf.d/upstream-wordpress.conf
+#    state: absent
+
+- name: Consul Template | Add link to consul rendered config
+  ansible.builtin.file:
+    path: "/etc/nginx/conf.d/upstream-wordpress.conf"
+    state: link
+    src: "/etc/consul-template.d/rendered/upstream-wordpress.conf"
+    force: true
+
+- name: Consul Template | Configure wordpress template
+  ansible.builtin.copy:
+    src: consul/upstream-wordpress.conf.ctmpl
+    dest: /etc/consul-template.d/templates/upstream-wordpress.conf.ctmpl
+    owner: consul
+    group: consul
+  notify: reload consul-template
+
+- name: Consul Template | Configure balancer
+  ansible.builtin.template:
+    src: templates/update_dns.sh.ctmpl
+    dest: /etc/consul-template.d/templates/update_dns.sh.ctmpl
+    owner: consul
+    group: consul
+  notify: reload consul-template
+
+- name: Consul Template | Add sudoers no passwd
+  community.general.sudoers:
+    name: consul
+    user: consul
+    commands: 
+    - "/usr/sbin/nginx -s reload"
+    - "/bin/bash /etc/consul-template.d/rendered/update_dns.sh" 
+
+- name: Consul Template | Copy systemd units
+  ansible.builtin.copy:
+    src: consul/consul-template.service
+    dest: /etc/systemd/system/consul-template.service
+
+- name: Consul Template | Start consul-template service
+  ansible.builtin.systemd:
+    name: consul-template
+    state: started
+    enabled: true
+    daemon_reload: true

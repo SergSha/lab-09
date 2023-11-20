@@ -1,0 +1,20 @@
+datacenter = "dc1"
+node_name = "{{ inventory_hostname }}"
+server = true
+ui_config {
+  enabled = true
+}
+data_dir = "{{ consul_data_dir }}"
+addresses {
+  http = "0.0.0.0"
+}
+encrypt = "lVu9hyIUvDHzxjja2JBBDIHT96VLMU5lgq+ex+s0HVo="
+raft_protocol = 3
+bootstrap_expect = {{ groups.consul | length }}
+{% set host_list = [] %}
+{% for i in groups.consul %}
+{% if inventory_hostname != i %}
+{{ host_list.append(hostvars[i].ansible_host) }}
+{%- endif %}
+{% endfor %}
+retry_join = [ "{{ host_list | join('", "') }}" ]

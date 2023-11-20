@@ -1,0 +1,21 @@
+---
+# Define php site user for percona server
+mysql_php_user: phpadmin
+mysql_php_password: phpadmin@Otus1234
+
+# Some defaults variables for percona server config file
+mysql_port: 3306
+
+# Define is a database must be created
+create_app_db: true
+db_name: cars
+db_collation: utf8_general_ci
+db_user: myuser
+db_user_password: anotherreallylongP@ssw0rd
+db_host: "%"
+db_dump_file: "cars.sql"
+
+wp_db_name: "wordpress"
+wp_db_user: "wordpress"
+wp_db_pass: "wordpresspassword"
+wp_db_host: "{{ hostvars['db-01'].ansible_host }}"

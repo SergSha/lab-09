@@ -1,0 +1,24 @@
+#!/bin/bash
+
+TOKEN="{{ token }}"
+ORG="{{ org }}"
+DOMAIN="{{ domain }}"
+
+RECS_ADD="{% raw %}{{- range service "balancer" }}{{ .ServiceTaggedAddresses.wan.Address }} {{ end }}{% endraw %}"
+
+RECS_DEL=$(curl -s -XGET -H "Authorization: OAuth $TOKEN" https://api360.yandex.net/directory/v1/org/$ORG/domains/$DOMAIN/dns?perPage=50 | jq -c '.records[] | select(.name == "task-09") | .recordId')
+
+#echo $RECS_DEL
+
+# remove all records
+for i in $RECS_DEL 
+do
+  curl -s -XDELETE -H "Authorization: OAuth $TOKEN" "https://api360.yandex.net/directory/v1/org/$ORG/domains/$DOMAIN/dns/$i"
+done
+
+# add records
+for i in $RECS_ADD
+do
+  curl -s -XPOST -H "Authorization: OAuth $TOKEN" "https://api360.yandex.net/directory/v1/org/$ORG/domains/$DOMAIN/dns" -d \{\"address\":\"$i\",\"name\":\"task-09\",\"ttl\":\"120\",\"type\":\"A\"\}
+done
+

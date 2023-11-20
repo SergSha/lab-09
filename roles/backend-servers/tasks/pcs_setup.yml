@@ -1,0 +1,49 @@
+---
+#- name: Set hostname
+#  ansible.builtin.hostname:
+#    name: "{{ inventory_hostname }}.{{ domain }}"
+
+#- name: Add my own IP address to /etc/hosts instead localhost
+#  ansible.builtin.replace:
+#    path: "/etc/hosts"
+#    regexp: '^127\.0\.0\.1(\s+){{ ansible_hostname }}(\s+){{ ansible_hostname }}.*'
+#    replace: "{{ ansible_host }} {{ ansible_hostname }}.{{ domain }} {{ ansible_hostname }}"
+
+#- name: Hosts | populate inventory into hosts file
+#  ansible.builtin.blockinfile:
+#    dest: /etc/hosts
+#    block: |-
+#      {% for item in groups['backend_servers'] %}
+#      {{ hostvars[item]['ip'] }} {{ item }}.{{ domain_name }} {{ item }}
+#      {% endfor %}
+#    state: present
+#    create: true
+#    #backup: true
+#    marker: "# Ansible inventory hosts {mark}"
+
+- name: Redhat OS
+  block:
+
+  - name: Allow cluster processes on SELinux
+    ansible.builtin.seboolean:
+      name: daemons_enable_cluster_mode
+      state: yes
+      persistent: yes
+
+  when: ansible_os_family == "RedHat"
+  
+# systemctl restart pcsd
+- name: Enable and start pcsd service
+  ansible.builtin.systemd:
+    name: pcsd
+    state: restarted
+    enabled: true
+
+- name: Set password for local hacluster user
+  ansible.builtin.user:
+    name: "hacluster"
+    password: "{{ pcs_password | string | password_hash('sha512') }}" 
+    state: present
+    update_password: always
+    create_home: yes
+  notify: "restart pcsd"
