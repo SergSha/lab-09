@@ -3,10 +3,10 @@ service {
   name = "{{ srv_name }}"
   tags = [ "{{ srv_name }}" ]
   port = 80
-{% if wan_ip is defined %}
+{% if public_ip is defined %}
   tagged_addresses {
     wan = {
-      address = "{{ wan_ip }}"
+      address = "{{ public_ip }}"
       port = 80
     }
   }

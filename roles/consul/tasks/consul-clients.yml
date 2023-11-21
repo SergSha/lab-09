@@ -36,7 +36,7 @@
   - /etc/consul.d
   - /var/lib/consul
 
-- name: Consul | Configure
+- name: Consul Client | Configure
   ansible.builtin.template:
     src: consul/consul-client.hcl.j2
     dest: /etc/consul.d/consul.hcl
@@ -44,7 +44,7 @@
     group: consul
   notify: reload consul
 
-- name: Consul | Configure Services
+- name: Consul Client | Configure Services
   ansible.builtin.template:
     src: consul/consul-service-app.hcl.j2
     dest: /etc/consul.d/services.hcl
@@ -52,12 +52,12 @@
     group: consul
   notify: reload consul
 
-- name: Consul | Copy systemd units
-  ansible.builtin.copy:
+- name: Consul Client | Copy systemd units
+  ansible.builtin.template:
     src: consul/consul.service
     dest: /etc/systemd/system/consul.service
 
-- name: Consul | Start consul service
+- name: Consul Client | Start consul service
   ansible.builtin.systemd:
     name: consul
     state: restarted

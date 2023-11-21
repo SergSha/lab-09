@@ -8,7 +8,7 @@
 
 - name: Include consul-clients
   include_tasks: consul-clients.yml
-  when: inventory_hostname in groups['nginx_servers','backend_servers']
+  when: inventory_hostname in (groups['nginx_servers'] + groups['backend_servers'])
 
 - name: Include consul-templates
   include_tasks: consul-templates.yml

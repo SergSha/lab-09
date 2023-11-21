@@ -17,6 +17,7 @@
       src: "nginx/{{ item }}.j2"
       dest: "/etc/nginx/{{ item }}"
     loop:
+      - nginx.conf
       - conf.d/upstreams.conf
       #- sites-available/upstreams
 
@@ -66,6 +67,7 @@
       src: "nginx/{{ item }}.j2"
       dest: "/etc/nginx/{{ item }}"
     loop:
+      - nginx.conf
       - conf.d/upstreams.conf
 
   - name: Insert line proxy_pass to /etc/nginx/nginx.conf

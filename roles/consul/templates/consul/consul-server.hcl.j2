@@ -4,15 +4,15 @@ server = true
 ui_config {
   enabled = true
 }
-data_dir = "{{ consul_data_dir }}"
+data_dir = "/var/lib/consul"
 addresses {
   http = "0.0.0.0"
 }
 encrypt = "lVu9hyIUvDHzxjja2JBBDIHT96VLMU5lgq+ex+s0HVo="
 raft_protocol = 3
-bootstrap_expect = {{ groups.consul | length }}
+bootstrap_expect = {{ groups.consul_servers | length }}
 {% set host_list = [] %}
-{% for i in groups.consul %}
+{% for i in groups.consul_servers %}
 {% if inventory_hostname != i %}
 {{ host_list.append(hostvars[i].ansible_host) }}
 {%- endif %}

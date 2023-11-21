@@ -1,7 +1,7 @@
 upstream @wordpress {
 {{- range service "wordpress" }}
-  server {{ .Address }}:80;
+  server {{ .Address }}:8080;
 {{- else }}
-  server 127.0.0.1:8080;
+  server 127.0.0.1:80;
 {{- end }}
 }

@@ -1,5 +1,11 @@
 # Balance server
 
+upstream @consul {
+{% for item in groups.consul_servers %}
+        server {{ hostvars[item].ansible_host }}:8500 max_fails=1;
+{% endfor %}
+}
+
 upstream @backend {
 {% for item in groups.backend_servers %}
         server {{ hostvars[item].ansible_host }}:8080 max_fails=1;

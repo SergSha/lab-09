@@ -1,6 +1,7 @@
 - name: Consul Template | Install Packages
-  ansible.builtin.apt: 
-    name: "{{ consul_packages }}"
+  ansible.builtin.dnf: 
+    name:
+      - unzip
     state: latest
     update_cache: true
 
@@ -41,10 +42,10 @@
     group: consul
   notify: reload consul-template
 
-#- name: Consul Template | Remove config
-#  ansible.builtin.file:
-#    path: /etc/nginx/conf.d/upstream-wordpress.conf
-#    state: absent
+- name: Consul Template | Remove config
+  ansible.builtin.file:
+    path: /etc/nginx/conf.d/upstreams.conf
+    state: absent
 
 - name: Consul Template | Add link to consul rendered config
   ansible.builtin.file:
@@ -55,15 +56,17 @@
 
 - name: Consul Template | Configure wordpress template
   ansible.builtin.copy:
-    src: consul/upstream-wordpress.conf.ctmpl
+    #src: consul/upstream-wordpress.conf.ctmpl
+    src: upstream-wordpress.conf.ctmpl
     dest: /etc/consul-template.d/templates/upstream-wordpress.conf.ctmpl
     owner: consul
     group: consul
   notify: reload consul-template
 
 - name: Consul Template | Configure balancer
-  ansible.builtin.template:
-    src: templates/update_dns.sh.ctmpl
+  ansible.builtin.copy:
+    #src: consul/update_dns.sh.ctmpl
+    src: update_dns.sh.ctmpl
     dest: /etc/consul-template.d/templates/update_dns.sh.ctmpl
     owner: consul
     group: consul
@@ -78,13 +81,13 @@
     - "/bin/bash /etc/consul-template.d/rendered/update_dns.sh" 
 
 - name: Consul Template | Copy systemd units
-  ansible.builtin.copy:
+  ansible.builtin.template:
     src: consul/consul-template.service
     dest: /etc/systemd/system/consul-template.service
 
 - name: Consul Template | Start consul-template service
   ansible.builtin.systemd:
     name: consul-template
-    state: started
+    state: restarted
     enabled: true
     daemon_reload: true

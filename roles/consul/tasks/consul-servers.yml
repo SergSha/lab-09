@@ -1,28 +1,28 @@
-- name: Consul | Install Packages
-  ansible.builtin.apt: 
+- name: Consul Server | Install Packages
+  ansible.builtin.dnf: 
     name:
       - unzip
     state: latest
     update_cache: true
 
-- name: Consul | Add user
+- name: Consul Server | Add user
   ansible.builtin.user:
     name: consul
     shell: /bin/false
     system: false
     create_home: false
 
-- name: Consul | Copy consul binaries
+- name: Consul Server | Copy consul binaries
   ansible.builtin.copy:
     src: "{{ item.src }}"
     dest: "{{ item.dest }}"
   loop:
   - src: consul_1.17.0_linux_amd64.zip
     dest: /tmp/consul_1.17.0_linux_amd64.zip
-  - src: binaries/consul-template_0.35.0_linux_amd64.zip
+  - src: consul-template_0.35.0_linux_amd64.zip
     dest: /tmp/consul-template_0.35.0_linux_amd64.zip
 
-- name: Consul | Unarchive consul binaries
+- name: Consul Server | Unarchive consul binaries
   ansible.builtin.unarchive:
     src: "{{ item }}"
     dest: /usr/local/sbin
@@ -31,7 +31,7 @@
   - "/tmp/consul_1.17.0_linux_amd64.zip"
   - "/tmp/consul-template_0.35.0_linux_amd64.zip"
 
-- name: Consul | Make directories
+- name: Consul Server | Make directories
   ansible.builtin.file:
     path: "{{ item }}"
     state: directory
@@ -41,20 +41,20 @@
   - /etc/consul.d/
   - /var/lib/consul
 
-- name: Consul | Configure
+- name: Consul Server | Configure
   ansible.builtin.template:
-    src: templates/consul-server.hcl.j2
+    src: consul/consul-server.hcl.j2
     dest: /etc/consul.d/consul.hcl
     owner: consul
     group: consul
   notify: reload consul
 
-- name: Consul | Copy systemd unit
+- name: Consul Server | Copy systemd unit
   ansible.builtin.template:
-    src: consul/consul.service"  
+    src: consul/consul.service
     dest: /etc/systemd/system/consul.service
 
-- name: Consul | Start consul service
+- name: Consul Server | Start consul service
   ansible.builtin.systemd:
     name: consul
     state: started
