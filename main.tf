@@ -31,7 +31,7 @@ locals {
 
   #subnet_cidrs  = ["10.10.50.0/24"]
   #subnet_name   = "my_vpc_subnet"
-  jump_count     = "1"
+  jump_count     = "0"
   db_count       = "1"
   iscsi_count    = "1"
   backend_count  = "2"

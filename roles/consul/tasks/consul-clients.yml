@@ -1,11 +1,11 @@
-- name: Consul | Install Packages
+- name: Consul Client | Install Packages
   ansible.builtin.dnf: 
     name:
       - unzip
     state: latest
     update_cache: true
 
-- name: Consul | Add user
+- name: Consul Client | Add user
   ansible.builtin.user:
     name: "consul"
     shell: "/bin/false"
@@ -15,18 +15,18 @@
       #    groups:
       #    - nginx
 
-- name: Consul | Copy consul binaries
+- name: Consul Client | Copy consul binaries
   ansible.builtin.copy:
     src: consul/consul_1.17.0_linux_amd64.zip
     dest: /tmp/consul_1.17.0_linux_amd64.zip
 
-- name: Consul | Unarchive consul binaries
+- name: Consul Client | Unarchive consul binaries
   ansible.builtin.unarchive:
     src: /tmp/consul_1.17.0_linux_amd64.zip
     dest: /usr/local/sbin
     remote_src: true
 
-- name: Consul | Make directories
+- name: Consul Client | Make directories
   ansible.builtin.file:
     path: "{{ item }}"
     state: directory

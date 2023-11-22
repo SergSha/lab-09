@@ -293,3 +293,20 @@ os-servers-info = {
 Стартовая страница:
 
 <img src="pics/screen-006.png" alt="screen-006.png" />
+
+
+
+
+[root@nginx-01 ~]# consul members
+Node        Address           Status  Type    Build   Protocol  DC   Partition  Segment
+consul-01   10.10.10.25:8301  alive   server  1.17.0  2         dc1  default    <all>
+consul-02   10.10.10.9:8301   alive   server  1.17.0  2         dc1  default    <all>
+consul-03   10.10.10.11:8301  alive   server  1.17.0  2         dc1  default    <all>
+backend-01  10.10.10.19:8301  alive   client  1.17.0  2         dc1  default    <default>
+backend-02  10.10.10.12:8301  alive   client  1.17.0  2         dc1  default    <default>
+nginx-01    10.10.10.13:8301  alive   client  1.17.0  2         dc1  default    <default>
+nginx-02    10.10.10.23:8301  alive   client  1.17.0  2         dc1  default    <default>
+[root@nginx-01 ~]#
+
+
+
