@@ -1,4 +1,4 @@
-upstream @wordpress {
+upstream @backend {
 {{- range service "wordpress" }}
   server {{ .Address }}:8080;
 {{- else }}

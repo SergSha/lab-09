@@ -17,7 +17,7 @@
 
 - name: Consul | Copy consul binaries
   ansible.builtin.copy:
-    src: consul_1.17.0_linux_amd64.zip
+    src: consul/consul_1.17.0_linux_amd64.zip
     dest: /tmp/consul_1.17.0_linux_amd64.zip
 
 - name: Consul | Unarchive consul binaries

@@ -30,3 +30,6 @@
     name: httpd_can_network_relay
     state: true
     persistent: true
+  loop:
+    - httpd_can_network_connect
+    - httpd_can_network_relay

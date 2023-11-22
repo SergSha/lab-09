@@ -14,7 +14,7 @@
 
 - name: Consul Template | Copy binaries
   ansible.builtin.copy:
-    src: consul-template_0.35.0_linux_amd64.zip
+    src: consul/consul-template_0.35.0_linux_amd64.zip
     dest: /tmp/consul-template_0.35.0_linux_amd64.zip
 
 - name: Consul Template | Unarchive consul binaries
@@ -56,8 +56,7 @@
 
 - name: Consul Template | Configure wordpress template
   ansible.builtin.copy:
-    #src: consul/upstream-wordpress.conf.ctmpl
-    src: upstream-wordpress.conf.ctmpl
+    src: consul/upstream-wordpress.conf.ctmpl
     dest: /etc/consul-template.d/templates/upstream-wordpress.conf.ctmpl
     owner: consul
     group: consul
@@ -65,8 +64,7 @@
 
 - name: Consul Template | Configure balancer
   ansible.builtin.copy:
-    #src: consul/update_dns.sh.ctmpl
-    src: update_dns.sh.ctmpl
+    src: consul/update_dns.sh.ctmpl
     dest: /etc/consul-template.d/templates/update_dns.sh.ctmpl
     owner: consul
     group: consul

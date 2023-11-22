@@ -70,18 +70,18 @@
       - nginx.conf
       - conf.d/upstreams.conf
 
-  - name: Insert line proxy_pass to /etc/nginx/nginx.conf
-    ansible.builtin.lineinfile:
-      path: /etc/nginx/nginx.conf
-      #regexp: '^Listen '
-      insertafter: '^        location / {'
-      line: "{{ item }}"
-    loop:
-      - '                proxy_connect_timeout 5;'
-      - '                proxy_set_header Host $host;'
-      - '                proxy_set_header X-Forwarded-For $remote_addr;'
-      - '                proxy_set_header X-Real-IP $remote_addr;'
-      - '                proxy_pass http://@backend;'
+  #- name: Insert line proxy_pass to /etc/nginx/nginx.conf
+  #  ansible.builtin.lineinfile:
+  #    path: /etc/nginx/nginx.conf
+  #    #regexp: '^Listen '
+  #    insertafter: '^        location / {'
+  #    line: "{{ item }}"
+  #  loop:
+  #    - '                proxy_connect_timeout 5;'
+  #    - '                proxy_set_header Host $host;'
+  #    - '                proxy_set_header X-Forwarded-For $remote_addr;'
+  #    - '                proxy_set_header X-Real-IP $remote_addr;'
+  #    - '                proxy_pass http://@backend;'
   
   when: ansible_os_family == "RedHat"
 

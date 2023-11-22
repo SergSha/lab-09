@@ -14,7 +14,7 @@
 
 - name: Consul Server | Copy consul binaries
   ansible.builtin.copy:
-    src: "{{ item.src }}"
+    src: "consul/{{ item.src }}"
     dest: "{{ item.dest }}"
   loop:
   - src: consul_1.17.0_linux_amd64.zip
