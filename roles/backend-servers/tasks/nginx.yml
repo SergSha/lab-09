@@ -44,10 +44,10 @@
   - name: Template nginx config files
     ansible.builtin.template:
       src: "nginx/{{ item }}.j2"
-      dest: "/etc/nginx/conf.d/{{ item }}.conf"
+      dest: "/etc/nginx/{{ item }}"
     loop:
-      #- upstreams
-      - phpsite
+      #- conf.d/upstreams
+      - nginx.conf
   
   when: ansible_os_family == "RedHat"
 

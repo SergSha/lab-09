@@ -5,7 +5,7 @@ flush ruleset
 table ip filter {
 
         chain NGINX_INP {
-                tcp dport { 80, 443 } ct state new counter accept
+                tcp dport { 80, 443, 8080 } ct state new counter accept
         }
         chain INPUT {
                 type filter hook input priority filter; policy drop;

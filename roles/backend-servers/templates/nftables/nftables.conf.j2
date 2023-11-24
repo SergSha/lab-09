@@ -23,7 +23,7 @@ table ip filter {
                 udp dport 9929 ct state new counter accept
         }
         chain NGINX_INP {
-                tcp dport 8080 ct state new counter accept
+                tcp dport { 80,8080 } ct state new counter accept
         }
         chain PHP_FPM_INP {
                 tcp dport 9000 ct state new counter accept

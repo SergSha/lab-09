@@ -315,7 +315,7 @@ resource "local_file" "inventory_file" {
       remote_user     = local.vm_user
       domain_name     = var.domain_name
       domain_org      = var.domain_org
-      domain_token    = var.domain_token
+      domain_token    = var.yc_token
     }
   )
   filename = "${path.module}/inventory.ini"

@@ -2,6 +2,10 @@
 #- name: Include nftables service
 #  include_tasks: nftables.yml
 
+- name: Include selinux setting
+  include_tasks: selinux.yml
+  when: ansible_os_family == "RedHat"
+
 - name: Include setup pcs service
   include_tasks: install_pkgs.yml
 
@@ -34,7 +38,3 @@
 
 #- name: Include php-fpm service
 #  include_tasks: php-fpm.yml
-
-- name: Include selinux setting
-  include_tasks: selinux.yml
-  when: ansible_os_family == "RedHat"

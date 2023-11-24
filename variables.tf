@@ -1,5 +1,6 @@
 variable "yc_token" {
   type = string
+  sensitive = true
 }
 
 variable "cloud_id" {
@@ -23,6 +24,6 @@ variable "domain_org" {
   type = string
 }
 
-variable "domain_token" {
-  type = string
-}
+#variable "domain_token" {
+#  type = string
+#}

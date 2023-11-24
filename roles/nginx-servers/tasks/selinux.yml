@@ -27,9 +27,10 @@
 # setsebool -P httpd_can_network_relay 1
 - name: Set httpd_can_network_relay flag on and keep it persistent across reboots
   ansible.posix.seboolean:
-    name: httpd_can_network_relay
+    name: "{{ item }}"
     state: true
     persistent: true
   loop:
     - httpd_can_network_connect
     - httpd_can_network_relay
+    - nis_enabled

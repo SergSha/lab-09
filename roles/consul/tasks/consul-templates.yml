@@ -63,7 +63,7 @@
   notify: reload consul-template
 
 - name: Consul Template | Configure balancer
-  ansible.builtin.copy:
+  ansible.builtin.template:
     src: consul/update_dns.sh.ctmpl
     dest: /etc/consul-template.d/templates/update_dns.sh.ctmpl
     owner: consul
