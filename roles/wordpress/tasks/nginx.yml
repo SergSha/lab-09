@@ -42,10 +42,11 @@
   # cp ./nginx/conf.d/wp.conf.j2 /etc/nginx/conf.d/wp.conf
   - name: Nginx | Template nginx config files
     ansible.builtin.template:
-      src: "{{ item }}.j2"
-      dest: "/etc/nginx/conf.d/{{ item }}"
+      src: "nginx/{{ item }}.j2"
+      dest: "/etc/nginx/{{ item }}"
     loop:
-      - wp.conf
+      - nginx.conf
+      #- conf.d/wp.conf
   
   when: ansible_os_family == "RedHat"
 
