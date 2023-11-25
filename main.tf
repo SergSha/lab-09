@@ -313,9 +313,9 @@ resource "local_file" "inventory_file" {
       nginx-servers   = data.yandex_compute_instance.nginx-servers
       consul-servers  = data.yandex_compute_instance.consul-servers
       remote_user     = local.vm_user
-      #domain_name     = var.domain_name
-      #domain_org      = var.domain_org
-      #domain_token    = var.yc_token
+      domain_name     = var.domain_name
+      domain_org      = var.domain_org
+      domain_token    = var.yc_token
     }
   )
   filename = "${path.module}/inventory.ini"

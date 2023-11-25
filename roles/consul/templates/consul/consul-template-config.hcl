@@ -14,8 +14,8 @@ template {
   command = "nginx -s reload"
 }
 
-#template {
-#  source = "/etc/consul-template.d/templates/update_dns.sh.ctmpl"
-#  destination = "/etc/consul-template.d/rendered/update_dns.sh"
-#  command = "/bin/bash /etc/consul-template.d/rendered/update_dns.sh > /dev/null"
-#}
+template {
+  source = "/etc/consul-template.d/templates/update_dns.sh.ctmpl"
+  destination = "/etc/consul-template.d/rendered/update_dns.sh"
+  command = "/bin/bash /etc/consul-template.d/rendered/update_dns.sh > /dev/null"
+}

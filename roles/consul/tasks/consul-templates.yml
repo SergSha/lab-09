@@ -62,13 +62,13 @@
     group: consul
   notify: reload consul-template
 
-#- name: Consul Template | Configure balancer
-#  ansible.builtin.template:
-#    src: consul/update_dns.sh.ctmpl
-#    dest: /etc/consul-template.d/templates/update_dns.sh.ctmpl
-#    owner: consul
-#    group: consul
-#  notify: reload consul-template
+- name: Consul Template | Configure balancer
+  ansible.builtin.template:
+    src: consul/update_dns.sh.ctmpl
+    dest: /etc/consul-template.d/templates/update_dns.sh.ctmpl
+    owner: consul
+    group: consul
+  notify: reload consul-template
 
 - name: Consul Template | Add sudoers no passwd
   community.general.sudoers:
@@ -76,7 +76,7 @@
     user: consul
     commands: 
     - "/usr/sbin/nginx -s reload"
-    #- "/bin/bash /etc/consul-template.d/rendered/update_dns.sh" 
+    - "/bin/bash /etc/consul-template.d/rendered/update_dns.sh" 
 
 - name: Consul Template | Copy systemd units
   ansible.builtin.template:
