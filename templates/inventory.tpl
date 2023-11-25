@@ -55,9 +55,9 @@ ansible_ssh_common_args='-o StrictHostKeyChecking=no -o ProxyJump="${ remote_use
 
 [nginx_servers:vars]
 srv_name=balancer
-domain=${domain_name}
-token=${domain_token}
-org=${domain_org}
+#domain=${domain_name}
+#token=${domain_token}
+#org=${domain_org}
 
 [backend_servers:vars]
 srv_name=wordpress

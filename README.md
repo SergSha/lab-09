@@ -55,13 +55,10 @@ ssh_public_key  = "~/.ssh/id_rsa.pub"
 ssh_private_key = "~/.ssh/id_rsa"
 ```
 
-Для того чтобы развернуть стенд, нужно выполнить следующую команду, вставляя свои значения (пароли) для переменных admin_password, kibanaserver_password, logstash_password:
+Для того чтобы развернуть стенд, нужно выполнить следующую команду:
 ```
 terraform init && terraform apply -auto-approve && \
-sleep 60 && ansible-playbook ./provision.yml \
---extra-vars "admin_password=admin@Otus1234 \
-kibanaserver_password=kibana@Otus1234 \
-logstash_password=logstash@Otus1234"
+sleep 60 && ansible-playbook ./provision.yml
 ```
 
 По завершению команды получим данные outputs:
@@ -154,18 +151,9 @@ nginx-servers-info = {
 
 На всех серверах будут установлены ОС Almalinux 8, настроены смнхронизация времени Chrony, система принудительного контроля доступа SELinux, в качестве firewall будет использоваться NFTables.
 
-Стенд был взят из лабораторной работы 7 https://github.com/SergSha/lab-07. Кафку развернём на кластере из трёх нод kafka-01, kafka-02, kafka-03. Координатором в целях выбора лидера в кластере kafka будет осущетсвляться ZooKeeper.
+Стенд был взят из лабораторной работы 5 https://github.com/SergSha/lab-05. Consul-server развернём на кластере из трёх нод consul-01, consul-02, consul-03. На балансировщиках (nginx-01 и nginx-02) и бэкендах (backend-01 и backend-02) будут установлены клиентские версии Consul. На баланcировщиках также будут установлены и настроены сервис consul-template, которые будут динамически подменять конфигурационные файлы Nginx. На бэкендах будут установлены wordpress. Проверка (check) на доступность сервисов на клиентских серверах будет осуществляться по http.
 
-Для централизованного сбора логов со всех серверов данного стенда создадим воспользуемся OpenSearch, установленный и настроенный на сервере os-01. 
-В нашем проекте kafka будет собирать логи с балансировщиков (nginx-01 и nginx-02) и бэкендов (backend-01 и backend-02), где будут установлены WordPress, хранить у себя и будет передавать эти логи OpenSearch через Logstash на сервере os-01.
-
-Для визуализации данных логов будем использовать OpenSearch Dashboard. В данном стенде OpenSearch Dashboard для удобства будем устанавливать на сервер Jump-01.
-
-Для установки OpenSearch и OpenSearch Dashboard был склонирован из репозитория https://github.com/opensearch-project/ansible-playbook с внесением небольших изменений под свой проект.
-
-В качестве агентов на серверах, откуда будем собирать логи, будем использовать FileBeat.
-
-Так как на YandexCloud ограничено количество выделяемых публичных IP адресов, в дополнение к этому стенду создадим ещё один сервер jump-01 в качестве JumpHost, через который будем подключаться по SSH (в частности для Ansible) к другим серверам той же подсети.
+Так как на YandexCloud ограничено количество выделяемых публичных IP адресов, в качестве JumpHost, через который будем подключаться по SSH (в частности для Ansible) к другим серверам той же подсети будем использовать сервер nginx-01.
 
 Список виртуальных машин после запуска стенда:
 
@@ -225,13 +213,14 @@ nginx-02    10.10.10.12:8301  alive   client  1.17.0  2         dc1  default    
 consul catalog services
 ```
 
-выведет список зарегистрированных consul сервисов:
+выводит список зарегистрированных consul сервисов:
 ```
 balancer
 consul
 wordpress
 ```
 
+DNS Зона прямого просмотра:
 ```
 [root@nginx-02 ~]# dig @localhost -p 8600 consul-01.node.dc1.consul
 
@@ -261,6 +250,7 @@ consul-01.node.dc1.consul. 0	IN	TXT	"consul-version=1.17.0"
 ;; MSG SIZE  rcvd: 140
 ```
 
+DNS Зона обратного просмотра:
 ```
 [root@nginx-02 ~]# dig @localhost -p 8600 -x 10.10.10.17
 
@@ -286,6 +276,7 @@ consul-01.node.dc1.consul. 0	IN	TXT	"consul-version=1.17.0"
 ;; MSG SIZE  rcvd: 92
 ```
 
+Список серверов в домене balancer.service.consul:
 ```
 [root@nginx-02 ~]# dig @127.0.0.1 -p 8600 balancer.service.consul
 
@@ -329,8 +320,8 @@ balancer.service.consul. 0	IN	A	10.10.10.3           <--- nginx-01
 ;balancer.service.consul.	IN	SRV
 
 ;; ANSWER SECTION:
-balancer.service.consul. 0	IN	SRV	1 1 80 nginx-01.node.dc1.consul.          <--- 10.10.10.3
-balancer.service.consul. 0	IN	SRV	1 1 80 nginx-02.node.dc1.consul.          <--- 10.10.10.12
+balancer.service.consul. 0	IN	SRV	1 1 80 nginx-01.node.dc1.consul.     <--- 10.10.10.3
+balancer.service.consul. 0	IN	SRV	1 1 80 nginx-02.node.dc1.consul.     <--- 10.10.10.12
 
 ;; ADDITIONAL SECTION:
 nginx-01.node.dc1.consul. 0	IN	A	10.10.10.3
@@ -346,6 +337,7 @@ nginx-02.node.dc1.consul. 0	IN	TXT	"consul-version=1.17.0"
 ;; MSG SIZE  rcvd: 312
 ```
 
+Список серверов в домене wordpress.service.consul:
 ```
 [root@nginx-02 ~]# dig @127.0.0.1 -p 8600 wordpress.service.consul
 
@@ -389,8 +381,8 @@ wordpress.service.consul. 0	IN	A	10.10.10.16          <--- backend-02
 ;wordpress.service.consul.	IN	SRV
 
 ;; ANSWER SECTION:
-wordpress.service.consul. 0	IN	SRV	1 1 80 backend-02.node.dc1.consul.          <--- 10.10.10.16
-wordpress.service.consul. 0	IN	SRV	1 1 80 backend-01.node.dc1.consul.          <--- 10.10.10.8
+wordpress.service.consul. 0	IN	SRV	1 1 80 backend-02.node.dc1.consul.     <--- 10.10.10.16
+wordpress.service.consul. 0	IN	SRV	1 1 80 backend-01.node.dc1.consul.     <--- 10.10.10.8
 
 ;; ADDITIONAL SECTION:
 backend-02.node.dc1.consul. 0	IN	A	10.10.10.16
@@ -406,14 +398,16 @@ backend-01.node.dc1.consul. 0	IN	TXT	"consul-network-segment="
 ;; MSG SIZE  rcvd: 317
 ```
 
-Тест на вывод:
+Вывод списка доступных серверов-балансировщиков в зоне balancer.service.dc1.consul, выполнив команду несколько раз подряд:
 ```
+...
 [root@nginx-02 ~]# dig +short @localhost -p 8600 balancer.service.dc1.consul
 10.10.10.12
 10.10.10.3
 [root@nginx-02 ~]# dig +short @localhost -p 8600 balancer.service.dc1.consul
 10.10.10.3
 10.10.10.12
+...
 ```
 
 На сервере nginx-02 остановим сервис nginx:
@@ -493,7 +487,7 @@ balancer.service.consul. 0	IN	A	10.10.10.3          <--- nginx-01
 ;balancer.service.consul.	IN	SRV
 
 ;; ANSWER SECTION:
-balancer.service.consul. 0	IN	SRV	1 1 80 nginx-01.node.dc1.consul.          <--- 10.10.10.3
+balancer.service.consul. 0	IN	SRV	1 1 80 nginx-01.node.dc1.consul.     <--- 10.10.10.3
 
 ;; ADDITIONAL SECTION:
 nginx-01.node.dc1.consul. 0	IN	A	10.10.10.3
@@ -506,6 +500,7 @@ nginx-01.node.dc1.consul. 0	IN	TXT	"consul-network-segment="
 ;; MSG SIZE  rcvd: 182
 ```
 
+Список доступных и работающих серверов:
 ```
 [root@nginx-02 ~]# dig +short @localhost -p 8600 balancer.service.dc1.consul
 10.10.10.3
@@ -1021,7 +1016,7 @@ true
 ```
 или более наглядно:
 ```
-root@nginx-02 ~]# curl -XGET http://localhost:8500/v1/kv/nginx/config/workers\?pretty
+[root@nginx-02 ~]# curl -XGET http://localhost:8500/v1/kv/nginx/config/workers\?pretty
 [
     {
         "LockIndex": 0,
@@ -1069,6 +1064,137 @@ Success! Data written to: nginx/config/workers
 [root@nginx-02 ~]# consul kv delete nginx/config/workers
 Success! Deleted key: nginx/config/workers
 ```
+
+Конфигурационный файл nginx, который постоянно генерируется с помощью сервиса consul-template:
+```
+[root@nginx-02 ~]# cat /etc/nginx/conf.d/upstream-wordpress.conf 
+upstream @backend {
+  server 10.10.10.8:80;           <--- backend-01
+  server 10.10.10.16:80;          <--- backend-02
+}
+```
+
+Подключимся по ssh к серверу backend-01:
+```
+ssh cloud-user@10.10.10.8 -J cloud-user@158.160.23.202
+```
+
+Отключим nginx:
+```
+[root@backend-01 ~]# systemctl status nginx
+● nginx.service - The nginx HTTP and reverse proxy server
+   Loaded: loaded (/usr/lib/systemd/system/nginx.service; enabled; vendor preset: disabled)
+  Drop-In: /usr/lib/systemd/system/nginx.service.d
+           └─php-fpm.conf
+   Active: active (running) since Sat 2023-11-25 21:32:41 MSK; 30min ago
+ Main PID: 8242 (nginx)
+    Tasks: 3 (limit: 10868)
+   Memory: 8.9M
+   CGroup: /system.slice/nginx.service
+           ├─ 8242 nginx: master process /usr/sbin/nginx
+           ├─10157 nginx: worker process
+           └─10158 nginx: worker process
+
+Nov 25 21:32:41 backend-01.example.com systemd[1]: Starting The nginx HTTP and reverse proxy server...
+Nov 25 21:32:41 backend-01.example.com nginx[8239]: nginx: the configuration file /etc/nginx/nginx.conf syntax is ok
+Nov 25 21:32:41 backend-01.example.com nginx[8239]: nginx: configuration file /etc/nginx/nginx.conf test is successful
+Nov 25 21:32:41 backend-01.example.com systemd[1]: Started The nginx HTTP and reverse proxy server.
+Nov 25 21:33:17 backend-01.example.com systemd[1]: Reloading The nginx HTTP and reverse proxy server.
+Nov 25 21:33:17 backend-01.example.com systemd[1]: Reloaded The nginx HTTP and reverse proxy server.
+[root@backend-01 ~]# 
+[root@backend-01 ~]# 
+[root@backend-01 ~]# systemctl stop nginx
+[root@backend-01 ~]# 
+[root@backend-01 ~]# 
+[root@backend-01 ~]# systemctl status nginx
+● nginx.service - The nginx HTTP and reverse proxy server
+   Loaded: loaded (/usr/lib/systemd/system/nginx.service; enabled; vendor preset: disabled)
+  Drop-In: /usr/lib/systemd/system/nginx.service.d
+           └─php-fpm.conf
+   Active: inactive (dead) since Sat 2023-11-25 22:06:30 MSK; 6s ago
+ Main PID: 8242 (code=exited, status=0/SUCCESS)
+
+Nov 25 21:32:41 backend-01.example.com systemd[1]: Starting The nginx HTTP and reverse proxy server...
+Nov 25 21:32:41 backend-01.example.com nginx[8239]: nginx: the configuration file /etc/nginx/nginx.conf syntax is ok
+Nov 25 21:32:41 backend-01.example.com nginx[8239]: nginx: configuration file /etc/nginx/nginx.conf test is successful
+Nov 25 21:32:41 backend-01.example.com systemd[1]: Started The nginx HTTP and reverse proxy server.
+Nov 25 21:33:17 backend-01.example.com systemd[1]: Reloading The nginx HTTP and reverse proxy server.
+Nov 25 21:33:17 backend-01.example.com systemd[1]: Reloaded The nginx HTTP and reverse proxy server.
+Nov 25 22:06:30 backend-01.example.com systemd[1]: Stopping The nginx HTTP and reverse proxy server...
+Nov 25 22:06:30 backend-01.example.com systemd[1]: nginx.service: Succeeded.
+Nov 25 22:06:30 backend-01.example.com systemd[1]: Stopped The nginx HTTP and reverse proxy server.
+```
+
+Снова смотрим конфигурационный файл nginx на балансировщике nginx-02:
+```
+[root@nginx-02 ~]# cat /etc/nginx/conf.d/upstream-wordpress.conf 
+upstream @backend {
+  server 10.10.10.16:80;          <--- backend-02
+}
+```
+
+Как видим, nginx сервис на балансировшике теперь направляет пакеты только на работающий backend-02.
+
+Снова  включим nginx на backend-01:
+```
+[root@backend-01 ~]# systemctl status nginx
+● nginx.service - The nginx HTTP and reverse proxy server
+   Loaded: loaded (/usr/lib/systemd/system/nginx.service; enabled; vendor preset: disabled)
+  Drop-In: /usr/lib/systemd/system/nginx.service.d
+           └─php-fpm.conf
+   Active: inactive (dead) since Sat 2023-11-25 22:06:30 MSK; 6min ago
+ Main PID: 8242 (code=exited, status=0/SUCCESS)
+
+Nov 25 21:32:41 backend-01.example.com systemd[1]: Starting The nginx HTTP and reverse proxy server...
+Nov 25 21:32:41 backend-01.example.com nginx[8239]: nginx: the configuration file /etc/nginx/nginx.conf syntax is ok
+Nov 25 21:32:41 backend-01.example.com nginx[8239]: nginx: configuration file /etc/nginx/nginx.conf test is successful
+Nov 25 21:32:41 backend-01.example.com systemd[1]: Started The nginx HTTP and reverse proxy server.
+Nov 25 21:33:17 backend-01.example.com systemd[1]: Reloading The nginx HTTP and reverse proxy server.
+Nov 25 21:33:17 backend-01.example.com systemd[1]: Reloaded The nginx HTTP and reverse proxy server.
+Nov 25 22:06:30 backend-01.example.com systemd[1]: Stopping The nginx HTTP and reverse proxy server...
+Nov 25 22:06:30 backend-01.example.com systemd[1]: nginx.service: Succeeded.
+Nov 25 22:06:30 backend-01.example.com systemd[1]: Stopped The nginx HTTP and reverse proxy server.
+[root@backend-01 ~]# 
+[root@backend-01 ~]# 
+[root@backend-01 ~]# systemctl start nginx
+[root@backend-01 ~]# 
+[root@backend-01 ~]# 
+[root@backend-01 ~]# systemctl status nginx
+● nginx.service - The nginx HTTP and reverse proxy server
+   Loaded: loaded (/usr/lib/systemd/system/nginx.service; enabled; vendor preset: disabled)
+  Drop-In: /usr/lib/systemd/system/nginx.service.d
+           └─php-fpm.conf
+   Active: active (running) since Sat 2023-11-25 22:13:29 MSK; 5s ago
+  Process: 27806 ExecStart=/usr/sbin/nginx (code=exited, status=0/SUCCESS)
+  Process: 27804 ExecStartPre=/usr/sbin/nginx -t (code=exited, status=0/SUCCESS)
+  Process: 27802 ExecStartPre=/usr/bin/rm -f /run/nginx.pid (code=exited, status=0/SUCCESS)
+ Main PID: 27807 (nginx)
+    Tasks: 3 (limit: 10868)
+   Memory: 5.1M
+   CGroup: /system.slice/nginx.service
+           ├─27807 nginx: master process /usr/sbin/nginx
+           ├─27808 nginx: worker process
+           └─27809 nginx: worker process
+
+Nov 25 22:13:29 backend-01.example.com systemd[1]: Starting The nginx HTTP and reverse proxy server...
+Nov 25 22:13:29 backend-01.example.com nginx[27804]: nginx: the configuration file /etc/nginx/nginx.conf syntax is ok
+Nov 25 22:13:29 backend-01.example.com nginx[27804]: nginx: configuration file /etc/nginx/nginx.conf test is successf>
+Nov 25 22:13:29 backend-01.example.com systemd[1]: Started The nginx HTTP and reverse proxy server.
+```
+
+Снова проверим конфигурационный файл nginx на балансировщике nginx-02:
+```
+[root@nginx-02 ~]# cat /etc/nginx/conf.d/upstream-wordpress.conf 
+upstream @backend {
+  server 10.10.10.8:80;           <--- backend-01
+  server 10.10.10.16:80;          <--- backend-02
+}
+```
+
+Теперь пакеты снова направляются на оба бэкенда (backend-01 и backend-02).
+
+Можно сделать вывод, что развёрнутая система с установленным и настроенным consul сервисом работает должным образом.
+
 
 #### Удаление стенда
 

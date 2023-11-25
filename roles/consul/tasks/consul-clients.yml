@@ -2,6 +2,7 @@
   ansible.builtin.dnf: 
     name:
       - unzip
+      - bind-utils
     state: latest
     update_cache: true
 
@@ -11,9 +12,9 @@
     shell: "/bin/false"
     system: false
     create_home: false
-      #    append: true
-      #    groups:
-      #    - nginx
+    #append: true
+    #groups:
+    #- nginx
 
 - name: Consul Client | Copy consul binaries
   ansible.builtin.copy:
